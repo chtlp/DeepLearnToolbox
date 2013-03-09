@@ -12,8 +12,15 @@ function rbm = rbmtrain(rbm, x, opts)
             batch = x(kk((l - 1) * opts.batchsize + 1 : l * opts.batchsize), :);
             
             v1 = batch;
-            h1 = sigmrnd(repmat(rbm.c', opts.batchsize, 1) + v1 * rbm.W');
-            v2 = sigmrnd(repmat(rbm.b', opts.batchsize, 1) + h1 * rbm.W);
+            h1 = sigmrnd(repmat(rbm.c', opts.batchsize, 1) + v1 * ...
+                         rbm.W');
+            if opts.gaussian
+                v2 = gaussianrnd(repmat(rbm.b', opts.batchsize, 1) ...
+                                 + h1 * rbm.W);
+            else
+                v2 = sigmrnd(repmat(rbm.b', opts.batchsize, 1) + h1 ...
+                             * rbm.W);
+            end    
             h2 = sigmrnd(repmat(rbm.c', opts.batchsize, 1) + v2 * rbm.W');
 
             c1 = h1' * v1;
@@ -27,6 +34,7 @@ function rbm = rbmtrain(rbm, x, opts)
             rbm.b = rbm.b + rbm.vb;
             rbm.c = rbm.c + rbm.vc;
 
+            % reconstruction error is L2
             err = err + sum(sum((v1 - v2) .^ 2)) / opts.batchsize;
         end
         
